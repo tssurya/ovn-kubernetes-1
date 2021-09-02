@@ -178,6 +178,14 @@ func (odbi *ovndb) transact(db string, ops ...libovsdb.Operation) ([]libovsdb.Op
 		return reply, fmt.Errorf("Number of Replies should be atleast equal to number of operations")
 	}
 	if atomic.LoadUint32(&odbi.monitorSem) != 0 {
+		for _, op := range ops {
+		    if op.Table == TableNBGlobal {
+			    return reply, nil
+			}
+			if _, ok := op.Row["port_security"]; ok {
+			    return reply, nil
+			}
+		}
 		// we did not receive an Update for this transaction, disconnect
 		log.Printf("TROZET WARN: did not receive and update for transaction...disconnecting: %+v\n", ops)
 		odbi.Close()
